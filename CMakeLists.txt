@@ -16,7 +16,11 @@
 # limitations under the License.
 
 # Sets the minimum version of CMake required to build the native library.
+
 cmake_minimum_required( VERSION 3.7.0 )
+
+# Enforce 64-bit time_t and large file support for Y2K38 and file offset safety on supported toolchains
+add_compile_definitions(_TIME_BITS=64 _FILE_OFFSET_BITS=64)
 
 # Include GNUInstallDirs module to access CMAKE_INSTALL_* directory variables
 include(GNUInstallDirs)
