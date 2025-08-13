@@ -422,10 +422,14 @@ bool DobbyRdkPluginUtils::writeTextFile(const std::string &path,
         {
             break;
         }
-
-        if (written > remaining)
+        else if (written > remaining)
         {
             AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", written, remaining);
+            break;
+        }
+        else if (remaining < 0)
+        {
+            AI_LOG_ERROR("writeTextFile: remaining became negative, aborting to prevent overflow");
             break;
         }
 
@@ -651,7 +655,7 @@ bool DobbyRdkPluginUtils::addEnvironmentVar(const std::string& envVar) const
  *
  *  Lastly to help find issues, this function will log an error and reject
  *  the file descriptor if it doesn't have the FD_CLOEXEC bit set.
- * 
+ *
  *  Please mind that this call should be used only in preCreation hook.
  *  That's due to the fact preserve fds list should be initialized
  *  before container starts.

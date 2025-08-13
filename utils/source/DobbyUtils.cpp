@@ -1029,7 +1029,7 @@ int DobbyUtils::runE2fsTool(int dirFd, std::list<std::string>* consoleOutput,
         AI_LOG_SYS_ERROR(errno, "failed to read from pipe");
         outputBuf[0] = '\0';
     }
-    
+
     // chop up the output, assuming each message is delimited by a newline
     if (consoleOutput != nullptr)
     {
@@ -1254,10 +1254,14 @@ bool DobbyUtils::writeTextFileAt(int dirFd, const std::string& path,
         {
             break;
         }
-
-        if (written > n)
+        else if (written > n)
         {
             AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", written, n);
+            break;
+        }
+        else if (n < 0)
+        {
+            AI_LOG_ERROR("writeTextFileAt: n became negative, aborting to prevent overflow");
             break;
         }
 
@@ -1676,7 +1680,7 @@ bool DobbyUtils::executeCommand(const std::string &command) const
 }
 // -------------------------------------------------------------------------
 /**
- *  @brief Returns the effective GID or UID for the given PID 
+ *  @brief Returns the effective GID or UID for the given PID
  *         by parsing /proc/<PID>/status
  *
  *  @param[in]  pid    The PID of the process to get the GID for
@@ -1698,7 +1702,7 @@ int DobbyUtils::getGIDorUID(pid_t pid, const std::string& idType) const
 
     __gnu_cxx::stdio_filebuf<char> statusFileBuf(fd, std::ios::in);
     std::istream statusFileStream(&statusFileBuf);
-    
+
     std::string line;
     while (std::getline(statusFileStream, line))
     {

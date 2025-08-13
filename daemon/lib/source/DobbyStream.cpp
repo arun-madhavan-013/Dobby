@@ -266,7 +266,7 @@ std::vector<char> DobbyBufferStream::getBuffer() const
 
     if (dataSize > 0)
     {
-        if (dataSize <= size && dataSize >= 0)
+        if (dataSize >= 0 && dataSize <= size && size >= dataSize)
         {
             buf.resize(static_cast<size_t>(size - dataSize));
         }

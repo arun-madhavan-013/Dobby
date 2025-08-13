@@ -700,6 +700,11 @@ bool Netfilter::writeString(int fd, const std::string &str) const
             AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", wr, n);
             break;
         }
+        else if (n < 0)
+        {
+            AI_LOG_ERROR("writeString: n became negative, aborting to prevent overflow");
+            break;
+        }
 
         s += wr;
         n -= wr;
@@ -940,4 +945,3 @@ Netfilter::IptablesVersion Netfilter::getIptablesVersion() const
 
     return version;
 }
-

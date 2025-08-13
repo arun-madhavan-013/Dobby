@@ -360,30 +360,37 @@ int AICommon::copyFile(const std::string & to, const std::string & from)
         goto out_error;
     }
 
-    while (nread = TEMP_FAILURE_RETRY(read(fdFrom, buf, sizeof buf)), nread > 0)
+    while ((nread = TEMP_FAILURE_RETRY(read(fdFrom, buf, sizeof buf))) > 0)
     {
         char *out_ptr = buf;
+        ssize_t to_write = nread;
         ssize_t nwritten;
 
-        do
+        while (to_write > 0)
         {
-            nwritten = TEMP_FAILURE_RETRY(write(fdTo, out_ptr, nread));
+            // Defensive: ensure to_write is positive and not greater than SSIZE_MAX
+            if (to_write < 0 || to_write > SSIZE_MAX)
+            {
+                AI_LOG_ERROR("Invalid write size: %zd", to_write);
+                goto out_error;
+            }
+            nwritten = TEMP_FAILURE_RETRY(write(fdTo, out_ptr, to_write));
 
             if (nwritten >= 0)
             {
-                if (nwritten > nread)
+                if (nwritten > to_write)
                 {
-                    AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", nwritten, nread);
+                    AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", nwritten, to_write);
                     goto out_error;
                 }
-                nread -= nwritten;
+                to_write -= nwritten;
                 out_ptr += nwritten;
             }
             else if (errno != EINTR)
             {
                 goto out_error;
             }
-        } while (nread > 0);
+        }
     }
 
     if (nread == 0)
@@ -639,6 +646,10 @@ bool AICommon::createTextFileAt(int dirFd, const std::string& filePath, const st
     while (contents.size() > amountWritten)
     {
         size_t remaining = contents.size() - amountWritten;
+        if (remaining > contents.size()) {
+            AI_LOG_ERROR("Overflow detected in remaining calculation");
+            break;
+        }
         ssize_t ret = TEMP_FAILURE_RETRY(write(fd, contents.data() + amountWritten, remaining));
         if (ret < 0)
         {
@@ -654,6 +665,11 @@ bool AICommon::createTextFileAt(int dirFd, const std::string& filePath, const st
         else if (static_cast<size_t>(ret) > remaining)
         {
             AI_LOG_ERROR("write returned more bytes than requested: %zd > %zu", ret, remaining);
+            break;
+        }
+        else if (amountWritten > amountWritten + static_cast<size_t>(ret))
+        {
+            AI_LOG_ERROR("Overflow detected in amountWritten addition");
             break;
         }
         else
