@@ -1255,6 +1255,12 @@ bool DobbyUtils::writeTextFileAt(int dirFd, const std::string& path,
             break;
         }
 
+        if (written > n)
+        {
+            AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", written, n);
+            break;
+        }
+
         s += written;
         n -= written;
     }

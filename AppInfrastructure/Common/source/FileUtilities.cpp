@@ -371,6 +371,11 @@ int AICommon::copyFile(const std::string & to, const std::string & from)
 
             if (nwritten >= 0)
             {
+                if (nwritten > nread)
+                {
+                    AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", nwritten, nread);
+                    goto out_error;
+                }
                 nread -= nwritten;
                 out_ptr += nwritten;
             }
@@ -633,11 +638,12 @@ bool AICommon::createTextFileAt(int dirFd, const std::string& filePath, const st
     size_t amountWritten = 0;
     while (contents.size() > amountWritten)
     {
-        ssize_t ret = TEMP_FAILURE_RETRY(write(fd, contents.data() + amountWritten, contents.size() - amountWritten));
+        size_t remaining = contents.size() - amountWritten;
+        ssize_t ret = TEMP_FAILURE_RETRY(write(fd, contents.data() + amountWritten, remaining));
         if (ret < 0)
         {
             AI_LOG_SYS_ERROR(errno, "failed to write %zu bytes to '%s' file",
-                             (contents.size() - amountWritten), filePath.c_str());
+                             remaining, filePath.c_str());
             break;
         }
         else if (ret == 0)
@@ -645,9 +651,14 @@ bool AICommon::createTextFileAt(int dirFd, const std::string& filePath, const st
             AI_LOG_ERROR("didn't write any data, odd");
             break;
         }
+        else if (static_cast<size_t>(ret) > remaining)
+        {
+            AI_LOG_ERROR("write returned more bytes than requested: %zd > %zu", ret, remaining);
+            break;
+        }
         else
         {
-            amountWritten += ret;
+            amountWritten += static_cast<size_t>(ret);
         }
     }
 

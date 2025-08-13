@@ -252,6 +252,11 @@ std::vector<char> DobbyBufferStream::getBuffer() const
         {
             break;
         }
+        else if (rd > dataSize)
+        {
+            AI_LOG_ERROR("read returned more bytes than requested: %zd > %zd", rd, dataSize);
+            break;
+        }
         else
         {
             dataPtr += rd;

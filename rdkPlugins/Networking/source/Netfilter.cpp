@@ -695,6 +695,11 @@ bool Netfilter::writeString(int fd, const std::string &str) const
         {
             break;
         }
+        else if (wr > n)
+        {
+            AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", wr, n);
+            break;
+        }
 
         s += wr;
         n -= wr;
@@ -935,3 +940,4 @@ Netfilter::IptablesVersion Netfilter::getIptablesVersion() const
 
     return version;
 }
+

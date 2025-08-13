@@ -423,6 +423,12 @@ bool DobbyRdkPluginUtils::writeTextFile(const std::string &path,
             break;
         }
 
+        if (written > remaining)
+        {
+            AI_LOG_ERROR("write returned more bytes than requested: %zd > %zd", written, remaining);
+            break;
+        }
+
         size += written;
         remaining -= written;
     }
