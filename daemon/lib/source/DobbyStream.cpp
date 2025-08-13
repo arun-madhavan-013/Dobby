@@ -261,7 +261,15 @@ std::vector<char> DobbyBufferStream::getBuffer() const
 
     if (dataSize > 0)
     {
-        buf.resize(size - dataSize);
+        if (dataSize <= size && dataSize >= 0)
+        {
+            buf.resize(static_cast<size_t>(size - dataSize));
+        }
+        else
+        {
+            AI_LOG_ERROR("Unexpected dataSize value: %zd (size: %jd)", dataSize, static_cast<intmax_t>(size));
+            buf.clear();
+        }
     }
 
     return buf;
