@@ -80,7 +80,7 @@ bool DeviceMapperPlugin::preCreation()
 
     // Get the major/minor IDs of the devices we're interested in
     std::vector<DevNode> deviceNodes;
-    DevNode node;
+    DevNode node = {};
     for (size_t i = 0; i < mContainerConfig->rdk_plugins->devicemapper->data->devices_len; i++)
     {
         if (getDevNodeFromPath(mContainerConfig->rdk_plugins->devicemapper->data->devices[i], node))
